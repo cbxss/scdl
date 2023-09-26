@@ -8,7 +8,7 @@ Usage:
     [-n <maxtracks>][-o <offset>][--hidewarnings][--debug | --error][--path <path>]
     [--addtofile][--addtimestamp][--onlymp3][--hide-progress][--min-size <size>]
     [--max-size <size>][--remove][--no-album-tag][--no-playlist-folder]
-    [--download-archive <file>][--sync <file>][--extract-artist][--flac][--original-art]
+    [--download-archive <file>][--sync <file>][--sync2 <file>][--extract-artist][--flac][--original-art]
     [--original-name][--no-original][--only-original][--name-format <format>]
     [--strict-playlist][--playlist-name-format <format>][--client-id <id>]
     [--auth-token <token>][--overwrite][--no-playlist]
@@ -51,6 +51,7 @@ Options:
     --path [path]                   Use a custom path for downloaded files
     --remove                        Remove any files not downloaded from execution
     --sync [file]                   Compares an archive file to a playlist and downloads/removes any changed tracks
+    --sync2 [file]                  Compares an archive file to a playlist and downloads/removes any changed tracks
     --flac                          Convert original files to .flac
     --no-album-tag                  On some player track get the same cover art if from the same album, this prevent it
     --original-art                  Download original cover art
@@ -214,6 +215,9 @@ def main():
         arguments["-l"] = client.get_me().permalink_url
     
     arguments["-l"] = validate_url(client, arguments["-l"])
+
+    if arguments["--sync2"]:
+        arguments["--sync"] = arguments["--sync2"]
 
     if arguments["--sync"]:
         arguments["--download-archive"] = arguments["--sync"]
@@ -470,7 +474,14 @@ def download_playlist(client: SoundCloud, playlist: BasicAlbumPlaylist, **kwargs
             )
             playlist.tracks = playlist.tracks[: int(kwargs.get("n"))]
             kwargs["playlist_offset"] = 0
-        if kwargs.get("sync"):
+        if "sync2" in kwargs.keys:
+            while True:
+                if os.path.isfile(kwargs.get("sync")):
+                        playlist.tracks = sync(client, playlist, playlist_info, **kwargs)
+                else:
+                        logger.error(f'Invalid sync archive file {kwargs.get("sync")}')
+                        sys.exit(1)
+        elif kwargs.get("sync"):
                   if os.path.isfile(kwargs.get("sync")):
                         playlist.tracks = sync(client, playlist, playlist_info, **kwargs)
                   else:
@@ -954,6 +965,6 @@ def is_ffmpeg_available():
     Returns true if ffmpeg is available in the operating system
     """
     return shutil.which("ffmpeg") is not None
-
+    
 if __name__ == "__main__":
     main()
