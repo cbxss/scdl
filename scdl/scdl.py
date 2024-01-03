@@ -697,7 +697,7 @@ def download_hls(client: SoundCloud, track: BasicTrack, title: str, playlist_inf
     return (filename, False)
 
 
-def download_track(client: SoundCloud, track: BasicTrack, playlist_info=None, exit_on_fail=True, pos=-1 **kwargs):
+def download_track(client: SoundCloud, track: BasicTrack, playlist_info=None, exit_on_fail=True, pos=-1, **kwargs):
     """
     Downloads a track
     """
