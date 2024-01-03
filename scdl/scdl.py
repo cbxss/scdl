@@ -703,9 +703,9 @@ def download_track(client: SoundCloud, track: BasicTrack, playlist_info=None, ex
     """
     try:
         if pos != -1: 
-            title = track.title + pos
-        else:
-            title = track.title
+            track.title  = pos + " "+ track.title 
+        
+        title = track.title
         title = title.encode("utf-8", "ignore").decode("utf-8")
         logger.info(f"Downloading {title}")
 
