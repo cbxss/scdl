@@ -475,12 +475,14 @@ def download_playlist(client: SoundCloud, playlist: BasicAlbumPlaylist, **kwargs
             playlist.tracks = playlist.tracks[: int(kwargs.get("n"))]
             kwargs["playlist_offset"] = 0
         if "sync2" in kwargs.keys:
+            print("Syncing.")
             while True:
                 if os.path.isfile(kwargs.get("sync")):
                         playlist.tracks = sync(client, playlist, playlist_info, **kwargs)
                 else:
                         logger.error(f'Invalid sync archive file {kwargs.get("sync")}')
                         sys.exit(1)
+                time.sleep(86400)
         elif kwargs.get("sync"):
                   if os.path.isfile(kwargs.get("sync")):
                         playlist.tracks = sync(client, playlist, playlist_info, **kwargs)
@@ -499,7 +501,7 @@ def download_playlist(client: SoundCloud, playlist: BasicAlbumPlaylist, **kwargs
                 else:
                     track = client.get_track(track.id)
 
-            download_track(client, track, playlist_info, kwargs.get("strict_playlist"), **kwargs)
+            download_track(client, track, playlist_info, kwargs.get("strict_playlist"), pos=counter, **kwargs)
     finally:
         if not kwargs.get("no_playlist_folder"):
             os.chdir("..")
@@ -695,12 +697,15 @@ def download_hls(client: SoundCloud, track: BasicTrack, title: str, playlist_inf
     return (filename, False)
 
 
-def download_track(client: SoundCloud, track: BasicTrack, playlist_info=None, exit_on_fail=True, **kwargs):
+def download_track(client: SoundCloud, track: BasicTrack, playlist_info=None, exit_on_fail=True, pos=-1 **kwargs):
     """
     Downloads a track
     """
     try:
-        title = track.title
+        if pos != -1: 
+            title = track.title + pos
+        else:
+            title = track.title
         title = title.encode("utf-8", "ignore").decode("utf-8")
         logger.info(f"Downloading {title}")
 
@@ -765,8 +770,7 @@ def download_track(client: SoundCloud, track: BasicTrack, playlist_info=None, ex
         logger.error(err)
         if exit_on_fail:
             sys.exit(1)
-
-
+            
 def can_convert(filename):
     ext = os.path.splitext(filename)[1]
     return "wav" in ext or "aif" in ext
